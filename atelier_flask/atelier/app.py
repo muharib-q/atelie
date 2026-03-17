@@ -1,12 +1,33 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-import sqlite3, os
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'atelier_shik_secret_2024'
 
-# /tmp не сбрасывается между запросами на Render
-import tempfile
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'atelier.db')
+# Хранение данных прямо в памяти — работает на любом хостинге
+BOOKINGS = []
+BOOKING_ID = [1]
+
+SERVICES = [
+    {'id':1,'name':'Индивидуальный пошив','description':'Создаём изделия по вашим меркам и эскизам. Платья, костюмы, блузки, юбки — любые фасоны.','price':'от 1 500 ₽','unit':'/ изделие','icon':'sewing'},
+    {'id':2,'name':'Ремонт и переделка','description':'Ушить, выпустить, заменить молнию, укоротить — быстро и аккуратно на профессиональном оборудовании.','price':'от 300 ₽','unit':'/ работа','icon':'scissors'},
+    {'id':3,'name':'Свадебные наряды','description':'Пошив и подгонка свадебных платьев с учётом всех ваших пожеланий. Реставрация и украшение.','price':'от 5 000 ₽','unit':'/ наряд','icon':'ring'},
+    {'id':4,'name':'Вышивка и декор','description':'Именная вышивка, нашивки, декоративные элементы — украсим любое изделие.','price':'от 500 ₽','unit':'/ работа','icon':'flower'},
+    {'id':5,'name':'Пошив по фото','description':'Привезите любимый образ из интернета или журнала — воплотим его в жизнь точь-в-точь.','price':'от 2 000 ₽','unit':'/ изделие','icon':'camera'},
+    {'id':6,'name':'Корпоративная одежда','description':'Пошив форменной и рабочей одежды для компаний. Скидки на оптовые заказы.','price':'от 1 200 ₽','unit':'/ единица','icon':'shirt'},
+]
+
+MASTERS = [
+    {'id':1,'full_name':'Зухра Ибрагимова','initials':'ЗИ','specialization':'Главный мастер','experience':15,'bio':'15 лет опыта. Специализация — вечерние и свадебные наряды. Участник выставок моды СКФО.'},
+    {'id':2,'full_name':'Фатима Дзугаева','initials':'ФД','specialization':'Мастер по ремонту','experience':8,'bio':'8 лет опыта. Быстрый и аккуратный ремонт одежды любой сложности. Специализация — кожа и джинс.'},
+    {'id':3,'full_name':'Мадина Хапаева','initials':'МХ','specialization':'Мастер по пошиву','experience':6,'bio':'6 лет опыта. Индивидуальный пошив и корпоративная одежда. Точные выкройки по меркам.'},
+]
+
+REVIEWS = [
+    {'id':1,'initials':'АК','name':'Амина Карданова','text':'Заказывала свадебное платье — результат превзошёл все ожидания! Учли каждую мелочь, платье сидело идеально.','rating':5},
+    {'id':2,'initials':'ЛМ','name':'Лейла Мусаева','text':'Отличная мастерская! Сдала джинсы на ушивку — сделали за 2 часа, цена разумная. Теперь только сюда хожу.','rating':5},
+    {'id':3,'initials':'РБ','name':'Руслан Байрамуков','text':'Заказывал корпоративную форму для 15 сотрудников. Всё сделано качественно и в срок. Работаем уже 3-й год!','rating':5},
+]
 
 ICONS = {
     'sewing': '<svg viewBox="0 0 48 48" fill="none" width="44" height="44"><path d="M8 40L20 16L32 28L24 44" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="12" r="5" stroke="#C9A84C" stroke-width="2.5"/><path d="M31 12H8" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/><circle cx="36" cy="12" r="2" fill="#C9A84C"/></svg>',
@@ -17,69 +38,13 @@ ICONS = {
     'shirt': '<svg viewBox="0 0 48 48" fill="none" width="44" height="44"><path d="M16 6L6 14l4 4 4-2v26h20V16l4 2 4-4-10-8" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 6 Q24 12 32 6" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/></svg>',
 }
 
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db():
-    conn = get_db()
-    conn.executescript('''
-        CREATE TABLE IF NOT EXISTS services (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL, description TEXT,
-            price TEXT NOT NULL, unit TEXT, icon TEXT);
-        CREATE TABLE IF NOT EXISTS masters (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            full_name TEXT NOT NULL, initials TEXT NOT NULL,
-            specialization TEXT, experience INTEGER, bio TEXT);
-        CREATE TABLE IF NOT EXISTS bookings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            first_name TEXT NOT NULL, last_name TEXT,
-            phone TEXT NOT NULL, service TEXT NOT NULL,
-            booking_date TEXT, booking_time TEXT, comment TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            status TEXT DEFAULT "новая");
-        CREATE TABLE IF NOT EXISTS reviews (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            initials TEXT NOT NULL, name TEXT NOT NULL,
-            text TEXT NOT NULL, rating INTEGER DEFAULT 5);
-    ''')
-    if conn.execute('SELECT COUNT(*) FROM services').fetchone()[0] == 0:
-        conn.executemany('INSERT INTO services(name,description,price,unit,icon) VALUES(?,?,?,?,?)', [
-            ('Индивидуальный пошив','Создаём изделия по вашим меркам и эскизам. Платья, костюмы, блузки, юбки — любые фасоны.','от 1 500 ₽','/ изделие','sewing'),
-            ('Ремонт и переделка','Ушить, выпустить, заменить молнию, укоротить — быстро и аккуратно на профессиональном оборудовании.','от 300 ₽','/ работа','scissors'),
-            ('Свадебные наряды','Пошив и подгонка свадебных платьев с учётом всех ваших пожеланий. Реставрация и украшение.','от 5 000 ₽','/ наряд','ring'),
-            ('Вышивка и декор','Именная вышивка, нашивки, декоративные элементы — украсим любое изделие.','от 500 ₽','/ работа','flower'),
-            ('Пошив по фото','Привезите любимый образ из интернета или журнала — воплотим его в жизнь точь-в-точь.','от 2 000 ₽','/ изделие','camera'),
-            ('Корпоративная одежда','Пошив форменной и рабочей одежды для компаний. Скидки на оптовые заказы.','от 1 200 ₽','/ единица','shirt'),
-        ])
-    if conn.execute('SELECT COUNT(*) FROM masters').fetchone()[0] == 0:
-        conn.executemany('INSERT INTO masters(full_name,initials,specialization,experience,bio) VALUES(?,?,?,?,?)', [
-            ('Зухра Ибрагимова','ЗИ','Главный мастер',15,'15 лет опыта. Специализация — вечерние и свадебные наряды. Участник выставок моды СКФО.'),
-            ('Фатима Дзугаева','ФД','Мастер по ремонту',8,'8 лет опыта. Быстрый и аккуратный ремонт одежды любой сложности. Специализация — кожа и джинс.'),
-            ('Мадина Хапаева','МХ','Мастер по пошиву',6,'6 лет опыта. Индивидуальный пошив и корпоративная одежда. Точные выкройки по меркам.'),
-        ])
-    if conn.execute('SELECT COUNT(*) FROM reviews').fetchone()[0] == 0:
-        conn.executemany('INSERT INTO reviews(initials,name,text,rating) VALUES(?,?,?,?)', [
-            ('АК','Амина Карданова','Заказывала свадебное платье — результат превзошёл все ожидания! Учли каждую мелочь, платье сидело идеально.',5),
-            ('ЛМ','Лейла Мусаева','Отличная мастерская! Сдала джинсы на ушивку — сделали за 2 часа, цена разумная. Теперь только сюда хожу.',5),
-            ('РБ','Руслан Байрамуков','Заказывал корпоративную форму для 15 сотрудников. Всё сделано качественно и в срок. Работаем уже 3-й год!',5),
-        ])
-    conn.commit()
-    conn.close()
-
-# Вызывается ВСЕГДА при старте — и через python app.py и через gunicorn
-init_db()
-
 @app.route('/')
 def index():
-    conn = get_db()
-    services = conn.execute('SELECT * FROM services').fetchall()
-    masters  = conn.execute('SELECT * FROM masters').fetchall()
-    reviews  = conn.execute('SELECT * FROM reviews').fetchall()
-    conn.close()
-    return render_template('index.html', services=services, masters=masters, reviews=reviews, icons=ICONS)
+    return render_template('index.html',
+                           services=SERVICES,
+                           masters=MASTERS,
+                           reviews=REVIEWS,
+                           icons=ICONS)
 
 @app.route('/booking', methods=['POST'])
 def booking():
@@ -89,39 +54,42 @@ def booking():
     if not fname or not phone or not svc:
         flash('Заполните имя, телефон и выберите услугу', 'error')
         return redirect(url_for('index') + '#booking')
-    conn = get_db()
-    conn.execute(
-        'INSERT INTO bookings(first_name,last_name,phone,service,booking_date,booking_time,comment) VALUES(?,?,?,?,?,?,?)',
-        (fname, request.form.get('last_name',''), phone, svc,
-         request.form.get('booking_date',''), request.form.get('booking_time',''),
-         request.form.get('comment','')))
-    conn.commit()
-    conn.close()
+    
+    booking = {
+        'id': BOOKING_ID[0],
+        'first_name': fname,
+        'last_name': request.form.get('last_name',''),
+        'phone': phone,
+        'service': svc,
+        'booking_date': request.form.get('booking_date',''),
+        'booking_time': request.form.get('booking_time',''),
+        'comment': request.form.get('comment',''),
+        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M'),
+        'status': 'новая'
+    }
+    BOOKINGS.append(booking)
+    BOOKING_ID[0] += 1
+    
     flash('success', 'success')
     return redirect(url_for('index') + '#booking')
 
 @app.route('/admin')
 def admin():
-    conn = get_db()
-    bookings = conn.execute('SELECT * FROM bookings ORDER BY created_at DESC').fetchall()
-    conn.close()
-    return render_template('admin.html', bookings=bookings)
+    return render_template('admin.html', bookings=list(reversed(BOOKINGS)))
 
 @app.route('/admin/delete/<int:bid>', methods=['POST'])
 def delete_booking(bid):
-    conn = get_db()
-    conn.execute('DELETE FROM bookings WHERE id=?', (bid,))
-    conn.commit()
-    conn.close()
+    global BOOKINGS
+    BOOKINGS = [b for b in BOOKINGS if b['id'] != bid]
     return redirect(url_for('admin'))
 
 @app.route('/admin/status/<int:bid>', methods=['POST'])
 def update_status(bid):
-    conn = get_db()
-    conn.execute('UPDATE bookings SET status=? WHERE id=?',
-                 (request.form.get('status','новая'), bid))
-    conn.commit()
-    conn.close()
+    status = request.form.get('status','новая')
+    for b in BOOKINGS:
+        if b['id'] == bid:
+            b['status'] = status
+            break
     return redirect(url_for('admin'))
 
 if __name__ == '__main__':
