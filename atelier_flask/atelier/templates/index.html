@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>АтельеШик — Швейная мастерская</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav id="navbar">
+  <div class="nav-logo">Ательє<span>Шик</span></div>
+  <ul class="nav-links">
+    <li><a href="#services">Услуги</a></li>
+    <li><a href="#about">О нас</a></li>
+    <li><a href="#masters">Мастера</a></li>
+    <li><a href="#gallery">Работы</a></li>
+    <li><a href="#reviews">Отзывы</a></li>
+  </ul>
+  <a href="#booking" class="nav-cta">Записаться</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-left">
+    <span class="hero-tag">✦ Швейная мастерская в Черкесске</span>
+    <h1 class="hero-title">Одежда,<br>созданная <em>для вас</em></h1>
+    <p class="hero-desc">Индивидуальный пошив, ремонт и реставрация одежды любой сложности. Ваш стиль — наша работа.</p>
+    <div class="hero-btns">
+      <a href="#booking" class="btn-primary">Записаться на приём</a>
+      <a href="#services" class="btn-outline">Наши услуги</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">850+</div><div class="stat-label">Довольных клиентов</div></div>
+      <div><div class="stat-num">12</div><div class="stat-label">Лет опыта</div></div>
+      <div><div class="stat-num">3</div><div class="stat-label">Мастера</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-bg"></div>
+    <div class="hero-decor">Ателье</div>
+    <div class="hero-center">
+      <svg width="90" height="90" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="46" stroke="#C9A84C" stroke-width="1.5" stroke-opacity="0.3"/>
+        <path d="M50 15 L54 45 L50 85 L46 45 Z" fill="#C9A84C" opacity="0.9"/>
+        <ellipse cx="50" cy="28" rx="3" ry="5" fill="none" stroke="#F7F3EE" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="4" fill="#C9A84C"/>
+      </svg>
+    </div>
+    <div class="hero-badge"><strong>№1</strong><span>в городе</span></div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="section-header reveal">
+    <span class="section-tag">✦ Что мы делаем</span>
+    <h2 class="section-title">Наши <em>услуги</em></h2>
+    <p class="section-sub">Любая работа с одеждой — от простого ремонта до эксклюзивного наряда</p>
+  </div>
+  <div class="services-grid">
+    {% for s in services %}
+    <div class="service-card reveal" onclick="openModal('{{ s.name }}','{{ s.description }}')">
+      <div class="service-icon">{{ icons[s.icon] | safe }}</div>
+      <div class="service-name">{{ s.name }}</div>
+      <div class="service-desc">{{ s.description }}</div>
+      <div class="service-price">{{ s.price }} <span>{{ s.unit }}</span></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="about">
+  <div class="about-visual reveal">
+    <div class="about-img-box">
+      <img src="{{ url_for('static', filename='img/about.jpg') }}" alt="Интерьер ателье">
+    </div>
+    <div class="about-badge-2"><strong>2012</strong><small>год основания</small></div>
+  </div>
+  <div class="about-text">
+    <span class="section-tag">✦ О мастерской</span>
+    <h2 class="section-title">Мастерство,<br>проверенное <em>временем</em></h2>
+    <p class="about-desc">АтельеШик — семейная швейная мастерская в Черкесске с 12-летней историей. Мы работаем с любыми тканями и фасонами, сохраняя индивидуальный подход к каждому клиенту.</p>
+    <div class="about-features">
+      <div class="about-feature"><div class="feature-dot"></div>
+        <div class="feature-text"><strong>Профессиональное оборудование</strong>
+        <p>Работаем на швейных машинах Brother и Juki промышленного класса</p></div></div>
+      <div class="about-feature"><div class="feature-dot"></div>
+        <div class="feature-text"><strong>Гарантия качества</strong>
+        <p>Предоставляем гарантию на все виды работ — переделаем бесплатно</p></div></div>
+      <div class="about-feature"><div class="feature-dot"></div>
+        <div class="feature-text"><strong>Срочные заказы</strong>
+        <p>Принимаем срочные заказы — готовы сделать за 1 день при необходимости</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="masters">
+  <div class="section-header reveal">
+    <span class="section-tag">✦ Наша команда</span>
+    <h2 class="section-title">Опытные <em>мастера</em></h2>
+    <p class="section-sub">Каждый мастер — специалист с многолетним опытом</p>
+  </div>
+  <div class="masters-grid">
+    {% for m in masters %}
+    <div class="master-card reveal">
+      <div class="master-initials">{{ m.initials }}</div>
+      <div class="master-name">{{ m.full_name }}</div>
+      <div class="master-role">{{ m.specialization }}</div>
+      <div class="master-bio">{{ m.bio }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="section-header reveal">
+    <span class="section-tag">✦ Портфолио</span>
+    <h2 class="section-title">Наши <em>работы</em></h2>
+    <p class="section-sub">Часть наших лучших изделий</p>
+  </div>
+  <div class="gallery-grid reveal">
+    <div class="gallery-item">
+      <img src="{{ url_for('static', filename='img/evening.jpg') }}" alt="Вечерние платья">
+      <div class="gallery-overlay"></div>
+      <div class="gallery-label">Вечерние платья, индивидуальный пошив</div>
+    </div>
+    <div class="gallery-item">
+      <img src="{{ url_for('static', filename='img/suits.jpg') }}" alt="Мужские костюмы">
+      <div class="gallery-overlay"></div>
+      <div class="gallery-label">Мужские костюмы на заказ</div>
+    </div>
+    <div class="gallery-item">
+      <img src="{{ url_for('static', filename='img/wedding.jpg') }}" alt="Свадебное платье">
+      <div class="gallery-overlay"></div>
+      <div class="gallery-label">Свадебное платье</div>
+    </div>
+    <div class="gallery-item">
+      <img src="{{ url_for('static', filename='img/coat.jpg') }}" alt="Пальто на заказ">
+      <div class="gallery-overlay"></div>
+      <div class="gallery-label">Пальто на заказ</div>
+    </div>
+  </div>
+</section>
+
+<section id="reviews">
+  <div class="section-header reveal">
+    <span class="section-tag">✦ Отзывы</span>
+    <h2 class="section-title">Что говорят <em>клиенты</em></h2>
+  </div>
+  <div class="reviews-grid">
+    {% for r in reviews %}
+    <div class="review-card reveal">
+      <div class="review-quote">"</div>
+      <p class="review-text">{{ r.text }}</p>
+      <div class="review-author">
+        <div class="review-av">{{ r.initials }}</div>
+        <div>
+          <div class="review-name">{{ r.name }}</div>
+          <div class="review-stars">{% for i in range(r.rating) %}★{% endfor %}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="booking">
+  <div class="booking-wrap">
+    <div class="booking-info">
+      <span class="section-tag">✦ Запись</span>
+      <h2 class="section-title">Записаться<br>на <em>приём</em></h2>
+      <p style="color:#8C7B6E;font-size:15px;line-height:1.8;margin-top:14px;">Оставьте заявку — мы свяжемся с вами в течение часа.</p>
+      <div class="contact-items">
+        <div class="contact-item"><span class="contact-ico">📍</span>
+          <div><div class="contact-label">Адрес</div><div class="contact-val">г. Черкесск, ул. Ленина, 42</div></div></div>
+        <div class="contact-item"><span class="contact-ico">📞</span>
+          <div><div class="contact-label">Телефон</div><div class="contact-val">+7 (878) 235-12-45</div></div></div>
+        <div class="contact-item"><span class="contact-ico">🕐</span>
+          <div><div class="contact-label">Режим работы</div><div class="contact-val">Пн–Сб: 9:00 – 19:00</div></div></div>
+        <div class="contact-item"><span class="contact-ico">✉️</span>
+          <div><div class="contact-label">Email</div><div class="contact-val">atelier.shik@mail.ru</div></div></div>
+      </div>
+    </div>
+    <div class="booking-form reveal">
+      <div class="form-title">Онлайн-запись</div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+          {% if cat == 'success' %}
+            <div class="form-success" style="display:block">✅ Заявка принята! Мы свяжемся с вами в течение часа.</div>
+          {% else %}
+            <div class="form-error">⚠️ {{ msg }}</div>
+          {% endif %}
+        {% endfor %}{% endif %}
+      {% endwith %}
+      <form method="POST" action="/booking">
+        <div class="form-row">
+          <div class="form-group"><label>Имя</label><input type="text" name="first_name" placeholder="Ваше имя" required></div>
+          <div class="form-group"><label>Фамилия</label><input type="text" name="last_name" placeholder="Фамилия"></div>
+        </div>
+        <div class="form-group"><label>Телефон</label><input type="tel" name="phone" id="phone" placeholder="+7 (___) ___-__-__" required></div>
+        <div class="form-group"><label>Услуга</label>
+          <select name="service" required>
+            <option value="">— Выберите услугу —</option>
+            {% for s in services %}<option value="{{ s.name }}">{{ s.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Дата</label><input type="date" name="booking_date"></div>
+          <div class="form-group"><label>Время</label>
+            <select name="booking_time">
+              {% for h in range(9,19) %}<option>{{ h }}:00</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Комментарий</label>
+          <textarea name="comment" placeholder="Расскажите подробнее о вашем заказе..."></textarea></div>
+        <button type="submit" class="btn-submit">Записаться →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">Ательє<span>Шик</span></div>
+      <p class="footer-about">Профессиональная швейная мастерская в Черкесске. Индивидуальный подход к каждому клиенту с 2012 года.</p>
+    </div>
+    <div class="footer-col"><h4>Услуги</h4><ul>
+      {% for s in services[:4] %}<li><a href="#services">{{ s.name }}</a></li>{% endfor %}
+    </ul></div>
+    <div class="footer-col"><h4>Компания</h4><ul>
+      <li><a href="#about">О нас</a></li><li><a href="#masters">Мастера</a></li>
+      <li><a href="#gallery">Портфолио</a></li><li><a href="#reviews">Отзывы</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Контакты</h4><ul>
+      <li><a href="#">г. Черкесск, ул. Ленина, 42</a></li>
+      <li><a href="#">+7 (878) 235-12-45</a></li>
+      <li><a href="#">Пн–Сб: 9:00–19:00</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2024 АтельеШик. Все права защищены.</span>
+    <span class="footer-copy">Карданова К.А. | СКГА СПК</span>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h3 id="modalTitle"></h3><p id="modalDesc"></p>
+    <a href="#booking" class="btn-primary" onclick="closeModal()" style="display:inline-block">Записаться на эту услугу</a>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

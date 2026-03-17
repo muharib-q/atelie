@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Панель администратора — АтельеШик</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F7F3EE;color:#3D2B1F;}
+.admin-header{background:#1A1410;padding:20px 40px;display:flex;align-items:center;justify-content:space-between;}
+.admin-logo{font-family:Georgia,serif;font-size:20px;color:#F7F3EE;}.admin-logo span{color:#C9A84C;}
+.admin-link{color:#C9A84C;text-decoration:none;font-size:13px;letter-spacing:1px;}
+.admin-body{padding:40px;}
+.admin-title{font-family:Georgia,serif;font-size:28px;color:#1A1410;margin-bottom:8px;}
+.admin-sub{color:#8C7B6E;font-size:14px;margin-bottom:32px;}
+.stats{display:flex;gap:20px;margin-bottom:36px;}
+.stat-box{background:#fff;padding:20px 28px;border-radius:2px;border-left:4px solid #C9A84C;}
+.stat-box .num{font-family:Georgia,serif;font-size:32px;color:#1A1410;font-weight:700;}
+.stat-box .lbl{font-size:12px;color:#8C7B6E;letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+table{width:100%;background:#fff;border-collapse:collapse;border-radius:2px;overflow:hidden;}
+th{background:#1A1410;color:#F7F3EE;padding:14px 16px;text-align:left;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
+td{padding:14px 16px;border-bottom:1px solid #F0EBE4;font-size:14px;vertical-align:middle;}
+tr:hover td{background:#FDFAF7;}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-new{background:#FFF3CD;color:#856404;}
+.badge-done{background:#D1E7DD;color:#0A3622;}
+.badge-cancel{background:#F8D7DA;color:#842029;}
+.btn-del{background:#f8cecc;color:#b85450;border:none;padding:6px 14px;border-radius:2px;cursor:pointer;font-size:12px;font-weight:600;}
+.btn-del:hover{background:#b85450;color:#fff;}
+.status-form select{padding:5px 8px;border:1px solid #E0D8D0;border-radius:2px;font-size:12px;background:#fff;}
+.status-form button{padding:5px 10px;background:#C9A84C;color:#fff;border:none;border-radius:2px;cursor:pointer;font-size:12px;}
+.empty{text-align:center;padding:60px;color:#8C7B6E;font-size:16px;}
+</style>
+</head>
+<body>
+<div class="admin-header">
+  <div class="admin-logo">Ательє<span>Шик</span> — Панель администратора</div>
+  <a href="/" class="admin-link">← Вернуться на сайт</a>
+</div>
+<div class="admin-body">
+  <div class="admin-title">Заявки на запись</div>
+  <div class="admin-sub">Все поступившие заявки от клиентов через форму сайта</div>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="num">{{ bookings|length }}</div>
+      <div class="lbl">Всего заявок</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">{{ bookings|selectattr('status','eq','новая')|list|length }}</div>
+      <div class="lbl">Новых</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">{{ bookings|selectattr('status','eq','выполнена')|list|length }}</div>
+      <div class="lbl">Выполнено</div>
+    </div>
+  </div>
+
+  {% if bookings %}
+  <table>
+    <tr>
+      <th>#</th><th>Клиент</th><th>Телефон</th><th>Услуга</th>
+      <th>Дата / Время</th><th>Комментарий</th><th>Статус</th><th>Действия</th>
+    </tr>
+    {% for b in bookings %}
+    <tr>
+      <td>{{ b.id }}</td>
+      <td><strong>{{ b.first_name }} {{ b.last_name or '' }}</strong><br>
+          <small style="color:#8C7B6E">{{ b.created_at[:16] }}</small></td>
+      <td>{{ b.phone }}</td>
+      <td>{{ b.service }}</td>
+      <td>{{ b.booking_date or '—' }}<br>{{ b.booking_time or '' }}</td>
+      <td style="max-width:180px;font-size:13px;color:#8C7B6E">{{ b.comment or '—' }}</td>
+      <td>
+        {% if b.status == 'новая' %}<span class="badge badge-new">новая</span>
+        {% elif b.status == 'выполнена' %}<span class="badge badge-done">выполнена</span>
+        {% else %}<span class="badge badge-cancel">{{ b.status }}</span>{% endif %}
+      </td>
+      <td style="display:flex;gap:8px;flex-wrap:wrap;">
+        <form class="status-form" method="POST" action="/admin/status/{{ b.id }}">
+          <select name="status">
+            <option {% if b.status=='новая' %}selected{% endif %}>новая</option>
+            <option {% if b.status=='в работе' %}selected{% endif %}>в работе</option>
+            <option {% if b.status=='выполнена' %}selected{% endif %}>выполнена</option>
+            <option {% if b.status=='отменена' %}selected{% endif %}>отменена</option>
+          </select>
+          <button type="submit">✓</button>
+        </form>
+        <form method="POST" action="/admin/delete/{{ b.id }}" onsubmit="return confirm('Удалить заявку?')">
+          <button type="submit" class="btn-del">✕</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">📭 Заявок пока нет. Они появятся здесь после отправки формы на сайте.</div>
+  {% endif %}
+</div>
+</body>
+</html>
