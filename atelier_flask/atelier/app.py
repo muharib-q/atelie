@@ -3,9 +3,10 @@ import sqlite3, os
 
 app = Flask(__name__)
 app.secret_key = 'atelier_shik_secret_2024'
-DB_PATH = '/tmp/database.db'
 
-# SVG иконки для услуг
+# /tmp не сбрасывается между запросами на Render
+DB_PATH = '/tmp/atelier.db'
+
 ICONS = {
     'sewing': '<svg viewBox="0 0 48 48" fill="none" width="44" height="44"><path d="M8 40L20 16L32 28L24 44" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="12" r="5" stroke="#C9A84C" stroke-width="2.5"/><path d="M31 12H8" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/><circle cx="36" cy="12" r="2" fill="#C9A84C"/></svg>',
     'scissors': '<svg viewBox="0 0 48 48" fill="none" width="44" height="44"><circle cx="14" cy="34" r="6" stroke="#C9A84C" stroke-width="2.5"/><circle cx="14" cy="14" r="6" stroke="#C9A84C" stroke-width="2.5"/><path d="M18.5 29.5L38 10" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/><path d="M18.5 18.5L38 38" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/></svg>',
@@ -67,6 +68,9 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Вызывается ВСЕГДА при старте — и через python app.py и через gunicorn
+init_db()
+
 @app.route('/')
 def index():
     conn = get_db()
@@ -74,11 +78,7 @@ def index():
     masters  = conn.execute('SELECT * FROM masters').fetchall()
     reviews  = conn.execute('SELECT * FROM reviews').fetchall()
     conn.close()
-    return render_template('index.html',
-                           services=services,
-                           masters=masters,
-                           reviews=reviews,
-                           icons=ICONS)
+    return render_template('index.html', services=services, masters=masters, reviews=reviews, icons=ICONS)
 
 @app.route('/booking', methods=['POST'])
 def booking():
@@ -123,13 +123,5 @@ def update_status(bid):
     conn.close()
     return redirect(url_for('admin'))
 
-# Инициализация БД при любом запуске (в т.ч. через gunicorn)
-init_db()
-
 if __name__ == '__main__':
-    print('\n' + '='*50)
-    print('  АтельеШик — сервер запущен!')
-    print('  Сайт:  http://127.0.0.1:5000')
-    print('  Админ: http://127.0.0.1:5000/admin')
-    print('='*50 + '\n')
     app.run(debug=True, host='0.0.0.0', port=5000)
