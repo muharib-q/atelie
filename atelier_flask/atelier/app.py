@@ -123,8 +123,10 @@ def update_status(bid):
     conn.close()
     return redirect(url_for('admin'))
 
+# Инициализация БД при любом запуске (в т.ч. через gunicorn)
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     print('\n' + '='*50)
     print('  АтельеШик — сервер запущен!')
     print('  Сайт:  http://127.0.0.1:5000')
