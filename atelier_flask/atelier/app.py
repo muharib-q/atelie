@@ -5,7 +5,8 @@ app = Flask(__name__)
 app.secret_key = 'atelier_shik_secret_2024'
 
 # /tmp не сбрасывается между запросами на Render
-DB_PATH = '/tmp/atelier.db'
+import tempfile
+DB_PATH = os.path.join(tempfile.gettempdir(), 'atelier_persistent.db')
 
 ICONS = {
     'sewing': '<svg viewBox="0 0 48 48" fill="none" width="44" height="44"><path d="M8 40L20 16L32 28L24 44" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="12" r="5" stroke="#C9A84C" stroke-width="2.5"/><path d="M31 12H8" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/><circle cx="36" cy="12" r="2" fill="#C9A84C"/></svg>',
