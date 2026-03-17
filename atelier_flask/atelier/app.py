@@ -3,7 +3,7 @@ import sqlite3, os
 
 app = Flask(__name__)
 app.secret_key = 'atelier_shik_secret_2024'
-DB_PATH = os.path.join(os.path.dirname(__file__), 'database.db')
+DB_PATH = '/tmp/database.db'
 
 # SVG иконки для услуг
 ICONS = {
